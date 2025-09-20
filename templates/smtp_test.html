@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}SMTP Test{% endblock %}
+{% block content %}
+<h3 style="color:{{ '#49e150' if ok else '#c62828' }}">SMTP test: {{ 'OK' if ok else 'ERROR' }}</h3>
+<p>{{ msg }}</p>
+{% endblock %}

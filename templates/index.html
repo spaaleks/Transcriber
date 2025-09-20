@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Jobs · Spal.Transcriber{% endblock %}
+
+{% block content %}
+<div class="forms two-col">
+  <form method="post" action="{{ url_for('jobs.create_job') }}">
+    <h3>Create Job from URL</h3>
+    <label>Name</label>
+    <input type="text" name="name" required>
+    <label>Recording URL</label>
+    <input type="text" name="url" required>
+    <label>Recipient group</label>
+    <select name="group">
+      <option>Not specified</option>
+      {% for g in groups %}
+        <option value="{{ g }}">{{ g }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Create Job</button>
+  </form>
+
+  <form method="post" action="{{ url_for('jobs.upload_job') }}" enctype="multipart/form-data">
+    <h3>Create Job from File</h3>
+    <label>Name</label>
+    <input type="text" name="name" required>
+    <label>Upload media</label>
+    <input type="file" name="file" accept="audio/*,video/*" required>
+    <label>Recipient group</label>
+    <select name="group">
+      <option>Not specified</option>
+      {% for g in groups %}
+        <option value="{{ g }}">{{ g }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Create Job</button>
+  </form>
+</div>
+<div class="table-wrap">
+  <table class="jobs">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Progress</th>
+      <th>Updated</th>
+      <th>Actions</th>
+    </tr>
+    {% for j in jobs %}
+      {% include "partials/_job_row.html" %}
+    {% endfor %}
+  </table>
+</div>
+<div class="footer">
+  by Spal<span class="dot">.</span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/refresh.js') }}"></script>
+{% endblock %}

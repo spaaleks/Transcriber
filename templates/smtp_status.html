@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <h3>SMTP Status</h3>
+
+  <div class="smtp-status">
+    <p><strong>Last Result:</strong> {{ r.message or "No test run yet" }}</p>
+    <p><strong>Time:</strong> {{ r.ts or "—" }}</p>
+    <p>
+      <strong>Status:</strong>
+      {% if r.ok %}
+        <span style="color: var(--ok)">OK</span>
+      {% elif r.ok is not none %}
+        <span style="color: var(--err)">Error</span>
+      {% else %}
+        <span style="color: var(--muted)">Not tested</span>
+      {% endif %}
+    </p>
+  </div>
+  <br>
+  <form method="post" action="{{ url_for('smtp.smtp_test') }}">
+    <button type="submit">Test SMTP</button>
+  </form>
+{% endblock %}

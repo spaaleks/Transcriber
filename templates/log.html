@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Log · Job {{ job_id }}{% endblock %}
+{% block content %}
+<h3>Job {{ job_id }} log</h3>
+<div class="badge" id="status">loading…</div>
+<small>updated: <span id="updated">—</span></small>
+<pre id="log">loading…</pre>
+{% endblock %}
+{% block scripts %}
+<script>
+(async function(){
+  async function refresh(){
+    try{
+      const r = await fetch("{{ url_for('jobs.api_log', job_id=job_id) }}",{cache:"no-store"});
+      if(!r.ok) return;
+      const d = await r.json();
+      document.getElementById("status").textContent = d.status + " — " + d.progress.toFixed(1) + "%";
+      document.getElementById("updated").textContent = d.updated_at;
+      document.getElementById("log").textContent = d.log || "";
+    }catch(e){}
+  }
+  setInterval(refresh, 1500); refresh();
+})();
+</script>
+{% endblock %}

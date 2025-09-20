@@ -1,0 +1,12 @@
+<header class="navbar">
+  <a href="{{ url_for('main.index') }}" class="left">
+    <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo" />
+    <h2>Transcriber</h2>
+  </a>
+  <nav>
+    <a href="{{ url_for('main.index') }}">Jobs</a>
+    <a href="{{ url_for('smtp.smtp_status') }}" class="smtp-link">
+      <span class="auto-indicator {% if settings.auto_send_email %}on{% else %}off{% endif %}"
+            title="Auto-Send is {% if settings.auto_send_email %}ON{% else %}OFF{% endif %}"></span> SMTP Status </a>
+  </nav>
+</header>

@@ -1,0 +1,64 @@
+<tr id="job-{{ j.id }}">
+  <td>{{ j.id }}</td>
+  <td>
+    {{ j.name }}<br>
+    <small>Slug: {{ j.slug }}</small><br>
+    <small>Group: {{ j.recipient_group }}</small>
+  </td>
+  <td class="status">{{ j.status }}</td>
+  <td style="min-width:180px;">
+    <div class="progress"><div class="progbar" style="width: {{ '%.1f'|format(j.progress) }}%;"></div></div>
+    <small class="progval">{{ '%.1f'|format(j.progress) }}%</small>
+  </td>
+  <td><small>{{ j.updated_at }}</small></td>
+  <td>
+    <div class="actions-inline">
+      {% if j.status == 'done' and j.txt_path %}
+        <!-- Download -->
+        <form method="get" action="{{ url_for('jobs.download_file', slug=j.slug, filename=(j.slug + '.txt')) }}">
+          <button type="submit" class="icon-btn link-btn" title="Download .txt" aria-label="Download .txt">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4.0 4.0a1 1 0 0 1-1.414 0l-4.0-4.0A1 1 0 0 1 8.707 10.293L11 12.586V4a1 1 0 0 1 1-1zM5 20a1 1 0 1 1 0-2h14a1 1 0 1 1 0 2H5z"/>
+            </svg>
+            <span>TXT</span>
+          </button>
+        </form>
+        <!-- Send mail -->
+        <form method="post" action="{{ url_for('jobs.send_mail', job_id=j.id) }}"
+              onsubmit="return confirm('Send transcript by email to recipients?');">
+          <button type="submit" class="icon-btn link-btn" title="Send mail" aria-label="Send mail">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="currentColor" d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v.511l-10 6.25-10-6.25V5zm0 3.245V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8.245l-9.12 5.7a2 2 0 0 1-1.76 0L2 8.245z"/>
+            </svg>
+            <span>Mail</span>
+          </button>
+        </form>
+      {% else %}
+        <button class="icon-btn disabled" disabled title="Waiting">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="currentColor" d="M12 22a10 10 0 1 1 10-10 10.011 10.011 0 0 1-10 10zm1-10V7a1 1 0 0 0-2 0v6a1 1 0 0 0 .553.894l4 2a1 1 0 1 0 .894-1.788z"/>
+          </svg>
+          <span>Pending</span>
+        </button>
+      {% endif %}
+
+      <!-- View log -->
+      <a class="icon-btn link-btn" href="{{ url_for('jobs.view_log', job_id=j.id) }}" title="View log" aria-label="View log">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M4 4h16a1 1 0 0 1 1 1v14l-4-3H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>
+        </svg>
+        <span>Log</span>
+      </a>
+
+      <!-- Delete -->
+      <form method="post" action="{{ url_for('jobs.delete_job', job_id=j.id) }}"
+            onsubmit="return confirm('Delete job and files?');">
+        <button type="submit" class="icon-btn link-btn danger" title="Delete job" aria-label="Delete job">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="currentColor" d="M9 3h6a1 1 0 0 1 1 1v1h4a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7H4a1 1 0 1 1 0-2h4V4a1 1 0 0 1 1-1zm-2 4v12h10V7H7zm2 2h2v8H9V9zm4 0h2v8h-2V9z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </td>
+</tr>
