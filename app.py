@@ -3,7 +3,8 @@ from pathlib import Path
 import argparse
 from flask import Flask
 from lib.settings import Settings
-from lib.core import db_init, Worker
+from lib.db import db_init
+from lib.worker import Worker
 from lib.auth import requires_auth
 from routes import register_routes
 

@@ -5,3 +5,4 @@ ffmpeg-python
 gunicorn
 python-dotenv
 werkzeug
+beautifulsoup4

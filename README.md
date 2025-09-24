@@ -5,7 +5,7 @@
 
 # Spal.Transcriber
 
-A simple self-hosted transcription tool.  
+A simple self-hosted transcription tool.
 It runs locally, so your audio/video never leaves your machine or server.
 
 ---
@@ -26,9 +26,9 @@ It runs locally, so your audio/video never leaves your machine or server.
 
 ## Usage
 
-1. Clone this repository  
-2. Copy `.env.example` to `.env` and adjust settings  
-3. Install Python requirements (or use Docker, see below)  
+1. Clone this repository
+2. Copy `.env.example` to `.env` and adjust settings
+3. Install Python requirements (or use Docker, see below)
 
 Run locally:
 
@@ -43,7 +43,7 @@ Then open [http://localhost:15551](http://localhost:15551).
 
 ## Docker (compose)
 
-For running in Docker, create a `.env` file with your settings (see `.env.example`).  
+For running in Docker, create a `.env` file with your settings (see `.env.example`).
 Then use Docker Compose:
 
 ```yaml
@@ -65,20 +65,20 @@ services:
 
 ## Example workflow
 
-1. Go to `http://localhost:15551`  
-2. Upload a file (e.g. `meeting.mp4` or `recording.mp3`)  
-3. Select which **recipient group** should be notified (if SMTP is configured)  
-4. Wait until processing finishes  
-5. Download the transcript or send it via email  
+1. Go to `http://localhost:15551`
+2. Upload a file (e.g. `meeting.mp4` or `recording.mp3`)
+3. Select which **recipient group** should be notified (if SMTP is configured)
+4. Wait until processing finishes
+5. Download the transcript or send it via email
 
 ---
 
 ## Recipient groups
 
-Recipients are defined in plain text files inside the `RECIPIENTS_DIR` (default: `./config`).  
+Recipients are defined in plain text files inside the `RECIPIENTS_DIR` (default: `./config`).
 
-- `recipients.txt` → main recipients (always notified if email sending is enabled)  
-- `recipients_<group>.txt` → group-specific recipients (notified only if the job is assigned to that group)  
+- `recipients.txt` → main recipients (always notified if email sending is enabled)
+- `recipients_<group>.txt` → group-specific recipients (notified only if the job is assigned to that group)
 
 Example:
 
@@ -89,7 +89,7 @@ config/
   recipients_Clients.txt   # group "Clients"
 ```
 
-Inside each file, list one email address per line. Lines starting with `#` are ignored.  
+Inside each file, list one email address per line. Lines starting with `#` are ignored.
 
 ---
 
@@ -98,45 +98,46 @@ Inside each file, list one email address per line. Lines starting with `#` are i
 Here’s what you can configure via `.env`:
 
 ### App
-- `APP_DATA_DIR` – Directory for storing jobs and outputs (default: `./data`)  
-- `APP_HOST` – Host to bind (default: `127.0.0.1`)  
-- `PORT` – Port to bind (default: `15551`)  
-- `APP_AUTH_USER` – Username for Basic Auth  
-- `APP_AUTH_PASS` – Password for Basic Auth  
+- `APP_DATA_DIR` – Directory for storing jobs and outputs (default: `./data`)
+- `APP_HOST` – Host to bind (default: `127.0.0.1`)
+- `PORT` – Port to bind (default: `15551`)
+- `APP_AUTH_USER` – Username for Basic Auth
+- `APP_AUTH_PASS` – Password for Basic Auth
 
 ### Whisper
-- `WHISPER_MODEL` – Model size (`tiny`, `base`, `small`, `medium`, `large-v3`)  
-- `WHISPER_DEVICE` – `cpu` or `cuda`  
-- `WHISPER_COMPUTE` – Compute type (`int8`, `float32`, `int8_float16`, `float16`)  
-- `WHISPER_THREADS` – CPU threads (integer)  
+- `WHISPER_MODEL` – Model size (`tiny`, `base`, `small`, `medium`, `large-v3`)
+- `WHISPER_DEVICE` – `cpu` or `cuda`
+- `WHISPER_COMPUTE` – Compute type (`int8`, `float32`, `int8_float16`, `float16`)
+- `WHISPER_THREADS` – CPU threads (integer)
+- `WORKER_CONCURRENCY` – Number of concurrent workers.
 
 ### SMTP / Email
-- `AUTO_SEND_EMAIL` – If `1`, emails are sent automatically after transcription (default: `0`)  
-- `SMTP_HOST` – SMTP server hostname  
-- `SMTP_PORT` – SMTP port (default: `587`)  
-- `SMTP_USER` – SMTP username (optional)  
-- `SMTP_PASS` – SMTP password (optional)  
-- `SMTP_SENDER` – Sender email address  
-- `SMTP_SENDER_NAME` – Display name for sender  
-- `SMTP_USE_TLS` – Use STARTTLS (default: `1`)  
-- `SMTP_USE_SSL` – Use SSL/TLS directly (default: `0`)  
-- `SMTP_VERIFY` – Verify server certificate (`1` = yes, `0` = no)  
+- `AUTO_SEND_EMAIL` – If `1`, emails are sent automatically after transcription (default: `0`)
+- `SMTP_HOST` – SMTP server hostname
+- `SMTP_PORT` – SMTP port (default: `587`)
+- `SMTP_USER` – SMTP username (optional)
+- `SMTP_PASS` – SMTP password (optional)
+- `SMTP_SENDER` – Sender email address
+- `SMTP_SENDER_NAME` – Display name for sender
+- `SMTP_USE_TLS` – Use STARTTLS (default: `1`)
+- `SMTP_USE_SSL` – Use SSL/TLS directly (default: `0`)
+- `SMTP_VERIFY` – Verify server certificate (`1` = yes, `0` = no)
 
 ### Recipients
-- `RECIPIENTS_DIR` – Directory containing recipient list files (default: `./config`)  
-- `RECIPIENTS_FILE` – Path to main recipients file (default: `./config/recipients.txt`)  
+- `RECIPIENTS_DIR` – Directory containing recipient list files (default: `./config`)
+- `RECIPIENTS_FILE` – Path to main recipients file (default: `./config/recipients.txt`)
 
 ### Mail template
-- `MAIL_SUBJECT` – Email subject (supports `{name}`, `{slug}` placeholders)  
-- `MAIL_BODY` – Email body (supports `{name}`, `{slug}`, supports `\n`)  
-- `MAIL_BODY_FILE` – Optional path to a file containing email body  
+- `MAIL_SUBJECT` – Email subject (supports `{name}`, `{slug}` placeholders)
+- `MAIL_BODY` – Email body (supports `{name}`, `{slug}`, supports `\n`)
+- `MAIL_BODY_FILE` – Optional path to a file containing email body
 
 ---
 
 ## Privacy notice
-- All files are stored and processed **locally**.  
-- Nothing is uploaded to third-party servers.  
-- Please always respect the privacy of speakers and only process content you are allowed to handle.  
+- All files are stored and processed **locally**.
+- Nothing is uploaded to third-party servers.
+- Please always respect the privacy of speakers and only process content you are allowed to handle.
 
 ---
 

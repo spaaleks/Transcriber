@@ -1,10 +1,9 @@
 from flask import Blueprint, request, redirect, url_for, abort, render_template, send_from_directory
 from pathlib import Path
 from werkzeug.utils import secure_filename
-from lib.core import (
-    db_conn, slugify, ensure_unique_slug, job_dir, now_iso,
-    notify_recipients, append_log
-)
+from lib.db import db_conn, ensure_unique_slug, job_dir, append_log
+from lib.utils import slugify, now_iso
+from lib.emailer import notify_recipients
 
 def jobs_bp(worker, settings):
     bp = Blueprint("jobs", __name__)

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, current_app
-from lib.core import smtp_smoke_test, now_iso
+from lib.emailer import smtp_smoke_test
+from lib.utils import now_iso
 
 def smtp_bp(worker, settings):
     bp = Blueprint("smtp", __name__)

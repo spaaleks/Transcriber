@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, jsonify, abort
-from lib.core import db_conn
+from lib.db import db_conn
 
 def main_bp(worker, settings):
     bp = Blueprint("main", __name__)

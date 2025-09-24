@@ -48,6 +48,8 @@ class Settings:
     mail_subject: str
     mail_body: str
     mail_body_file: Path | None = None
+    mail_body_html: str | None = None,
+    mail_body_html_file: Path | None = None
     upload_max_mb: int = 2048,
 
     @property
@@ -93,6 +95,8 @@ class Settings:
             mail_subject=_unescape(os.environ.get("MAIL_SUBJECT", "Transcript: {name}")) or "",
             mail_body=_unescape(os.environ.get("MAIL_BODY", "Please find the transcript attached.\n\nJob: {name}\nSlug: {slug}\n")) or "",
             mail_body_file=None,
+            mail_body_html=_unescape(os.environ.get("MAIL_BODY_HTML")),
+            mail_body_html_file=None,
             available_groups=[],
         )
         mbf = os.environ.get("MAIL_BODY_FILE")
