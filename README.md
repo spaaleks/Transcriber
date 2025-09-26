@@ -92,6 +92,50 @@ config/
 Inside each file, list one email address per line. Lines starting with `#` are ignored.
 
 ---
+## Webhooks (optional)
+
+If configured, a webhook is called when a job finishes. The transcript is sent as `multipart/form-data` with metadata.
+
+### Enable
+
+Set these in `.env`:
+
+* `WEBHOOK_URL` – target endpoint (if unset, webhooks are disabled)
+* `WEBHOOK_BEARER` – optional token for the `Authorization Bearer`
+* `WEBHOOK_TIMEOUT` – request timeout in seconds (default: `15`)
+* `WEBHOOK_VERIFY` – TLS verification (`1` = verify, `0` = skip)
+
+### When it fires
+
+* Automatically after a job reaches `done`.
+* Manually via a button in the GUI.
+
+### HTTP request
+
+* Method: `POST`
+* Content-Type: `multipart/form-data`
+* Parts:
+
+  * `metadata`: JSON string with job info (see below)
+  * `file`: transcript as `text/plain` (`<slug>.txt`)
+
+Example `metadata` JSON:
+
+```json
+{
+  "slug": "meeting-2025-09-26",
+  "name": "Weekly Meeting",
+  "job_id": 123,
+  "recipient_group": "Team",
+  "created_at": "2025-09-26 10:05:11",
+  "updated_at": "2025-09-26 10:22:44",
+  "source": "spal.transcriber",
+  "status": "done",
+  "filename": "meeting-2025-09-26.txt"
+}
+```
+
+---
 
 ## Environment variables
 

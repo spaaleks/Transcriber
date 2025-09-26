@@ -6,6 +6,7 @@ from lib.settings import Settings
 from lib.db import db_init
 from lib.worker import Worker
 from lib.auth import requires_auth
+from lib.outbox import Mailer
 from routes import register_routes
 
 def create_app(settings: Settings):
@@ -34,6 +35,10 @@ def create_app(settings: Settings):
 
     # register routes (pass app + worker + settings)
     register_routes(app, worker, settings)
+
+    mailer = Mailer(settings.db_path, settings)
+    mailer.ensure()
+    app.config["_mailer"] = mailer
 
     return app
 

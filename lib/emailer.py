@@ -154,40 +154,36 @@ def send_email(settings, to_addr: str, subject: str, body_text: str,
                     s.login(user, pwd)
             s.send_message(msg)
 
-def notify_recipients(settings, name: str, slug: str, txt_path: Path, log_cb, group: str = "none"):
+def render_html_for_job(settings, variables: dict[str, str]) -> str:
+    return _render_html_template(settings, variables)
+
+def notify_recipients(settings, name: str, slug: str, txt_path: Path, log_cb, group: str = "none", job_id: Optional[int] = None):
+    # Because of cuircular dependency
+    from .outbox import enqueue_email
+
     main_list = load_recipients(settings.recipients_file)
+
     group_list = load_group_recipients(settings, group)
     recs = unique_preserve_order([*group_list, *main_list])
+    if not recs or not (settings.smtp_host and settings.smtp_sender):
+        log_cb("SMTP not configured or no recipients. Skipping email."); return
 
-    if not recs:
-        log_cb(f"No recipients found for group '{group}' and main. Skipping email.")
-        return
-    if not (settings.smtp_host and settings.smtp_sender):
-        log_cb("SMTP not configured (SMTP_HOST or SMTP_SENDER missing). Skipping email.")
-        return
+    subject = settings.mail_subject.format(name=name, slug=slug)
+    body = settings.mail_body.format(name=name, slug=slug)
+    variables = {"name": name, "slug": slug, "group": group}
+    body_html = render_html_for_job(settings, variables)
 
-    sent = 0
     for addr in recs:
-        try:
-            subject = settings.mail_subject.format(name=name, slug=slug)
-            body = settings.mail_body.format(name=name, slug=slug)
-            variables = {"name": name, "slug": slug, "group": group}
-            body_html = _render_html_template(settings, variables)
-
-            send_email(
-                settings=settings,
-                to_addr=addr,
-                subject=subject,
-                body_text=body,
-                attachment_path=txt_path,
-                body_html=body_html,
-            )
-            sent += 1
-            log_cb(f"Email sent to {addr}")
-            time.sleep(0.3)
-        except Exception as e:
-            log_cb(f"Email FAILED to {addr}: {e}")
-    log_cb(f"Email summary (group='{group}'): {sent}/{len(recs)} sent")
+        enqueue_email(
+            settings.db_path,
+            job_id=job_id,
+            to_addr=addr,
+            subject=subject,
+            body_text=body,
+            body_html=body_html,
+            attachment_path=txt_path,
+        )
+        log_cb(f"Queued email to {addr}")
 
 def first_recipient(path: Path) -> Optional[str]:
     recs = load_recipients(path)

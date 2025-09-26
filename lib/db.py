@@ -1,3 +1,4 @@
+# lib/db.py
 import sqlite3
 from pathlib import Path
 from .utils import now_iso
@@ -5,6 +6,7 @@ from .utils import now_iso
 def db_conn(db_path: Path):
     con = sqlite3.connect(db_path, check_same_thread=False)
     con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys=ON")
     return con
 
 def db_init(db_path: Path):
@@ -15,18 +17,74 @@ def db_init(db_path: Path):
             name TEXT NOT NULL,
             slug TEXT NOT NULL,
             url TEXT NOT NULL,
-            status TEXT NOT NULL, -- queued|downloading|transcribing|done|error
+            status TEXT NOT NULL, -- queued|downloading|transcribing|done|error|canceled
             progress REAL NOT NULL,
             log TEXT NOT NULL,
             media_path TEXT,
             txt_path TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
-            error TEXT,
-            recipient_group TEXT
+            error TEXT
         )""")
+        # optional columns
+        cols = {r["name"] for r in con.execute("PRAGMA table_info(jobs)").fetchall()}
+        if "recipient_group" not in cols:
+            con.execute("ALTER TABLE jobs ADD COLUMN recipient_group TEXT DEFAULT NULL")
         con.execute("UPDATE jobs SET status='queued' WHERE status IN ('downloading','transcribing')")
         con.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_slug_unique ON jobs(slug)")
+
+        # outbox with FK -> jobs(id) cascade
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS outbox (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER, -- may be NULL for non-job mails
+            to_addr TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            body_text TEXT NOT NULL,
+            body_html TEXT,
+            attachment_path TEXT,
+            status TEXT NOT NULL, -- queued|sending|sent|error
+            attempts INTEGER NOT NULL DEFAULT 0,
+            last_error TEXT,
+            send_after TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(job_id) REFERENCES jobs(id) ON DELETE CASCADE
+        )""")
+        con.execute("CREATE INDEX IF NOT EXISTS idx_outbox_ready ON outbox(status, send_after)")
+
+        # migrate existing outbox without FK -> recreate with FK
+        fk = con.execute("PRAGMA foreign_key_list(outbox)").fetchall()
+        if not fk:
+            con.execute("ALTER TABLE outbox RENAME TO outbox_old")
+            con.execute("""
+            CREATE TABLE outbox (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER,
+                to_addr TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                body_text TEXT NOT NULL,
+                body_html TEXT,
+                attachment_path TEXT,
+                status TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                last_error TEXT,
+                send_after TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(job_id) REFERENCES jobs(id) ON DELETE CASCADE
+            )""")
+            con.execute("""
+            INSERT INTO outbox (id, job_id, to_addr, subject, body_text, body_html,
+                                attachment_path, status, attempts, last_error,
+                                send_after, created_at, updated_at)
+            SELECT id, job_id, to_addr, subject, body_text, body_html,
+                   attachment_path, status, attempts, last_error,
+                   send_after, created_at, updated_at
+            FROM outbox_old
+            """)
+            con.execute("DROP TABLE outbox_old")
+
         con.commit()
 
 def ensure_unique_slug(con, base_slug: str, data_dir: Path) -> str:

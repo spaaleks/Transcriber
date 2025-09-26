@@ -51,6 +51,11 @@ class Settings:
     mail_body_html: str | None = None,
     mail_body_html_file: Path | None = None
     upload_max_mb: int = 2048,
+    # webhook
+    webhook_url: str | None = None
+    webhook_bearer: str | None = None
+    webhook_timeout: int = 15
+    webhook_verify: bool = True
 
     @property
     def smtp_from_header(self) -> str | None:
@@ -98,6 +103,10 @@ class Settings:
             mail_body_html=_unescape(os.environ.get("MAIL_BODY_HTML")),
             mail_body_html_file=None,
             available_groups=[],
+            webhook_url=os.environ.get("WEBHOOK_URL"),
+            webhook_bearer=os.environ.get("WEBHOOK_BEARER"),
+            webhook_timeout=int(os.environ.get("WEBHOOK_TIMEOUT", "15")),
+            webhook_verify=os.environ.get("WEBHOOK_VERIFY", "1") not in ("0","false","False")
         )
         mbf = os.environ.get("MAIL_BODY_FILE")
         if mbf and Path(mbf).exists():

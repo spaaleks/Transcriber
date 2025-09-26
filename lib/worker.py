@@ -6,15 +6,16 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
+from lib.utils import now_iso
+
 from .db import db_conn, update_job, append_log, job_dir
 from .download import download_with_resume_and_validation
 from .transcribe import transcribe_to_txt
 from .emailer import notify_recipients
-
+from .webhook import send_transcript_webhook
 
 class JobAborted(Exception):
     pass
-
 
 class Worker:
     def __init__(self, data_dir: Path, db_path: Path,
@@ -109,6 +110,22 @@ class Worker:
         kept = "kept (uploaded by user)" if has_uploaded_media else "deleted"
         self._log(job_id, f"Transcription done. Media {kept}. TXT at {txt_path.name}")
 
+        try:
+            if getattr(self.settings, "webhook_url", None):
+                send_transcript_webhook(
+                    self.settings,
+                    job_id=job_id,
+                    slug=slug,
+                    name=row["name"],
+                    txt_path=txt_path,
+                    created_at=row["created_at"],
+                    updated_at=now_iso(),
+                    recipient_group=row.get("recipient_group") if isinstance(row, dict) else row["recipient_group"],
+                )
+        except Exception as e:
+            with db_conn(self.db_path) as con:
+                append_log(con, job_id, f"Webhook error: {e}")
+
         self._maybe_notify(job_id, name, slug, txt_path, row.get("recipient_group") or "none")
 
     # ---------- phases ----------
@@ -152,7 +169,7 @@ class Worker:
         try:
             if self.settings and getattr(self.settings, "auto_send_email", False):
                 notify_recipients(self.settings, name, slug, txt_path,
-                                  lambda m: self._log(job_id, m), group=group)
+                                  lambda m: self._log(job_id, m), group=group, job_id=job_id)
             else:
                 self._log(job_id, "Auto-send disabled (AUTO_SEND_EMAIL=0). Use 'Send mail' button.")
         except Exception as e:

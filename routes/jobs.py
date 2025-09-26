@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from lib.db import db_conn, ensure_unique_slug, job_dir, append_log
 from lib.utils import slugify, now_iso
 from lib.emailer import notify_recipients
+from lib.webhook import send_transcript_webhook
 
 def jobs_bp(worker, settings):
     bp = Blueprint("jobs", __name__)
@@ -129,10 +130,38 @@ def jobs_bp(worker, settings):
                 txt_path=Path(row["txt_path"]),
                 log_cb=lambda m: append_log(db_conn(settings.db_path), job_id, m),
                 group=row["recipient_group"],
+                job_id=job_id
             )
         except Exception as e:
             with db_conn(settings.db_path) as con:
                 append_log(con, job_id, f"Manual email send error: {e}")
+        return redirect(url_for("jobs.view_log", job_id=job_id))
+
+    @bp.post("/jobs/<int:job_id>/sendwebhook")
+    def send_webhook(job_id: int):
+        with db_conn(settings.db_path) as con:
+            row = con.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if not row:
+                abort(404)
+            if row["status"] != "done" or not row["txt_path"]:
+                abort(400, "job not finished or transcript missing")
+        if not getattr(settings, "webhook_url", None):
+            abort(400, "webhook not configured")
+
+        try:
+            send_transcript_webhook(
+                settings,
+                job_id=job_id,
+                slug=row["slug"],
+                name=row["name"],
+                txt_path=Path(row["txt_path"]),
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+                recipient_group=row["recipient_group"],
+            )
+        except Exception as e:
+            with db_conn(settings.db_path) as con:
+                append_log(con, job_id, f"Manual webhook send error: {e}")
         return redirect(url_for("jobs.view_log", job_id=job_id))
 
     return bp

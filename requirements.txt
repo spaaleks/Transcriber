@@ -6,3 +6,4 @@ gunicorn
 python-dotenv
 werkzeug
 beautifulsoup4
+requests
